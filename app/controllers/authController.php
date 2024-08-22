@@ -1,23 +1,46 @@
 <?php
+
 namespace App\Controllers;
 
-class AuthController extends Controller
-{
+use Core\Controller;
+use GuzzleHttp\Client;
+
+class AuthController extends Controller {
     public function login()
     {
-        $email = $_POST['email'];
-        $password = $_POST['password'];
-        
-        $response = $this->apiRequest('/user/auth', 'POST', [
-            'email' => $email,
-            'password' => $password,
-        ]);
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $email = $_POST['email'];
+            $password = $_POST['password'];
 
-        if ($response && $response->token) {
-            $_SESSION['token'] = $response->token;
-            header('Location: /profile');
+            // Fazer requisição para a API de autenticação
+            $client = new Client([
+                'base_uri' => getenv('API_HOST'),
+            ]);
+
+            $response = $client->post('/user/auth', [
+                'headers' => [
+                    'Authorization' => getenv('API_TOKEN'),
+                ],
+                'json' => [
+                    'email' => $email,
+                    'password' => $password,
+                ],
+            ]);
+
+            $data = json_decode($response->getBody(), true);
+
+            if ($response->getStatusCode() == 200 && isset($data['token'])) {
+                // Salva o token na sessão
+                $_SESSION['token'] = $data['token'];
+
+                // Redireciona para a página de perfil
+                header('Location: /profile');
+                exit;
+            } else {
+                $this->view('auth/auth', ['error' => 'Login inválido']);
+            }
         } else {
-            echo "Login falhou";
+            $this->view('auth/auth');
         }
     }
 }

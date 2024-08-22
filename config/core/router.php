@@ -1,20 +1,20 @@
 <?php
+
 namespace Core;
 
-class Router
-{
-    public function handleRequest()
-    {
-        $uri = $_SERVER['REQUEST_URI'];
+class Router {
+    protected $routes = [];
 
-        if ($uri == '/login') {
-            (new \App\Controllers\AuthController())->login();
-        } elseif ($uri == '/profile') {
-            (new \app\controllers\profileController())->show();
-        } elseif ($uri == '/transactions') {
-            (new \App\Controllers\TransactionController())->list();
-        } else {
-            echo "Página não encontrada";
+    public function add($route, $callback) {
+        $this->routes[$route] = $callback;
+    }
+
+    public function dispatch($uri) {
+        foreach ($this->routes as $route => $callback) {
+            if ($route == $uri) {
+                return call_user_func($callback);
+            }
         }
+        echo "404 - Not Found";
     }
 }
