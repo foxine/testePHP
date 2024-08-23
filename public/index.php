@@ -16,7 +16,6 @@ $router->add('/', function() {
     $controller->login();
 });
 
-// Adicionar outras rotas aqui...
 
 // Despachar a rota solicitada
 $router->dispatch(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
